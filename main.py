@@ -3,30 +3,7 @@ __author__ = 'william'
 import time
 import json
 import Logger
-
-def send_message(creds):
-    # Download the twilio-python library from http://twilio.com/docs/libraries
-    from twilio.rest import TwilioRestClient
-
-    client = TwilioRestClient(creds['account_sid'], creds['auth_token'])
-
-    message = client.messages.create(to=creds['phone_number'], from_=creds['twilio_number'],
-                                         body="Hello there!")
-
-def check_for_messages(creds):
-    from twilio.rest import TwilioRestClient
-
-    client = TwilioRestClient(creds['account_sid'], creds['auth_token'])
-
-    messages = client.messages.list(
-        from_=creds["phone_number"],
-    )
-
-    for m in messages:
-        print m.sid
-        print m.body
-
-
+import messaging as msg
 
 
 def setup_smores(filename=".twilio_cfg"):
@@ -35,28 +12,47 @@ def setup_smores(filename=".twilio_cfg"):
 
     try:
         creds = json.load(open(filename,'r'))
+        msg.account_sid = creds['account_sid']
+        msg.auth_token = creds['auth_token']
+        msg.phone_number = creds['phone_number']
+        msg.twilio_number = creds['twilio_number']
+
         return creds
     except:
         print "Cant find the crediential file. Look at .twilio_cfg for an example"
         exit()
 
+def create_new_logger(config = None):
+    if config == None:
+         config = {"hashtag":"test", \
+        "type":"rx/tx", \
+        "interval":"fixed", \
+        "time_regex":"hourly"}
+
+    logger = Logger.Logger(config)
+    return logger
 
 if __name__ == "__main__":
     print "Starting to roast some SMoreS"
     creds = setup_smores()
 
     loggers = []
-    loggers.append(Logger())
+    loggers.append(create_new_logger())
 
-    try:
-
+    #try:
+    # See which messages we need to send
+    for logger in loggers:
+        print "Iterating over loggers"
+        if logger.time_to_send(time.localtime()):
+            print "Sending data for logger: " + logger.name
+            logger.send()
         #send_message(creds)
-        check_for_messages(creds)
+        msg.check_for_messages()
         # Check for new messages to log
         # Check for messages to send
 
 
-        time.sleep(60)  # Wait 1 minute
+    time.sleep(60)  # Wait 1 minute
 
-    except Exception as e:
-        print e
+    #except Exception as e:
+    #    print e
