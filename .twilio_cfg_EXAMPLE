@@ -1,0 +1,7 @@
+{
+"account_sid":"SID from twilio",
+"auth_token":"auth token from twilio",
+"phone_number":"your phone number where you receive messages (+12345678900",
+"twilio_number":"twilio provided number"
+
+}
